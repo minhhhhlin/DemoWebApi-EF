@@ -1,4 +1,5 @@
 ﻿using DemoWebAPI_2.DTO;
+using DemoWebAPI_2.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace DemoWebAPI_2.Service
         {
             _context = context;
         }
+        // EF core LinQ to query data
         public async Task<List<StudentDto>> GetAllStudents()
         {
             var students = await _context.Students
@@ -38,6 +40,58 @@ namespace DemoWebAPI_2.Service
                     ClassName = s.Class.Name
                 }).FirstOrDefaultAsync();
             return student;
+        }
+
+        public object GetStudents(StudentQueryDto q)
+        {
+            //Tạo query, chưa chạy DB
+            IQueryable<Student> query = _context.Students;
+            //Filter theo lớp
+            if (q.ClassId.HasValue)
+            {
+                query = query.Where(s => s.ClassId == q.ClassId.Value);
+            }
+            //TÌm kiếm theo tên
+            if(!string.IsNullOrEmpty(q.Search))
+            {
+                query = query.Where(s => s.FullName.Contains(q.Search));
+            }
+            //Sort
+            if(!string.IsNullOrEmpty(q.SortBy))
+            {
+                if(q.SortBy.ToLower() == "fullname")
+                {
+                    query = q.Order?.ToLower() == "desc" ?
+                        query.OrderByDescending(s => s.FullName) :
+                        query.OrderBy(s => s.FullName);
+                }
+                else
+                {
+                    //Sort theo Id mặc định
+                    query = q.Order?.ToLower() == "desc" ?
+                        query.OrderByDescending(s => s.Id) :
+                        query.OrderBy(s => s.Id);
+                }
+            }
+            int totalRecords = query.Count();
+            //Pagination
+            var students = query
+                .Skip((q.Page - 1) * q.PageSize)
+                .Take(q.PageSize)
+                .Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    FullName = s.FullName,
+                    ClassName = s.Class.Name
+                }).ToList(); //Chạy query       
+            return new
+            {
+                totalRecords = totalRecords,
+                Page = q.Page,
+                PageSize = q.PageSize,
+                TotalPages = (int)System.Math.Ceiling((double)totalRecords / q.PageSize),
+                Data = students
+            };
         }
     }
 }

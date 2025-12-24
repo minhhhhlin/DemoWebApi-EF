@@ -1,4 +1,5 @@
-﻿using DemoWebAPI_2.Service;
+﻿using DemoWebAPI_2.DTO;
+using DemoWebAPI_2.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -24,11 +25,17 @@ namespace DemoWebAPI_2.Controllers
             return Ok(student);
 
         }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAllStudents()
+        //{
+        //    var students = await _studentService.GetAllStudents();
+        //    return Ok(students);
+        //}
         [HttpGet]
-        public async Task<IActionResult> GetAllStudents()
+        public IActionResult GetStudents([FromQuery] StudentQueryDto q)
         {
-            var students = await _studentService.GetAllStudents();
+            var students = _studentService.GetStudents(q);
             return Ok(students);
-        }
+            }
     }
 }

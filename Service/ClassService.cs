@@ -13,6 +13,7 @@ namespace DemoWebAPI_2.Service
         {
             _context = context;
         }
+        // EF core LinQ to query data
         public async Task<List<ClassDto>> GetAllClasses()
         {
             var classes = await _context.Classes
