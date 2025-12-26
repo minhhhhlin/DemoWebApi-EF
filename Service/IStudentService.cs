@@ -6,7 +6,7 @@ namespace DemoWebAPI_2.Service
 {
     public interface IStudentService
     {
-        // Async/await
+        //Async/await
         Task<StudentDto> GetStudentById(int id);
         Task<List<StudentDto>> GetAllStudents();
         object GetStudents(StudentQueryDto q);

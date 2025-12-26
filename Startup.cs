@@ -1,4 +1,4 @@
-using DemoWebAPI_2.Service;
+﻿using DemoWebAPI_2.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +13,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace DemoWebAPI_2
 {
@@ -35,11 +39,59 @@ namespace DemoWebAPI_2
                     Configuration.GetConnectionString("DefaultConnection")
                 )
             );
-            _ = services.AddScoped<IClassService, ClassService>();
-            _ = services.AddScoped<IStudentService, StudentService>();
+            services.AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = "Issuer",
+                    ValidAudience = "Audience",
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("DAY_LA_SECRET_KEY_RAT_DAI_IT_NHAT_32_KY_TU")
+                )
+                };
+            });
+
+            services.AddAuthorization();
+            services.AddScoped<IJwtService, JwtService>();  
+            services.AddScoped<IClassService, ClassService>();
+            services.AddScoped<IStudentService, StudentService>();
+            
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DemoWebAPI_2", Version = "v1" });
+                //Khai báo JWT
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Nhập token KHÔNG cần gõ Bearer"
+                });
+
+                //Áp dụng JWT cho Swagger
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
         }
 
@@ -56,6 +108,8 @@ namespace DemoWebAPI_2
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

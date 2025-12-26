@@ -1,6 +1,8 @@
 ﻿using DemoWebAPI_2.DTO;
 using DemoWebAPI_2.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DemoWebAPI_2.Controllers
@@ -14,6 +16,7 @@ namespace DemoWebAPI_2.Controllers
         {
             _studentService = studentService;
         }
+        [Authorize]
         [HttpGet("id")]
         public async Task<IActionResult> GetStudentById(int id)
         {
@@ -31,11 +34,14 @@ namespace DemoWebAPI_2.Controllers
         //    var students = await _studentService.GetAllStudents();
         //    return Ok(students);
         //}
+
+        [Authorize]
         [HttpGet]
         public IActionResult GetStudents([FromQuery] StudentQueryDto q)
         {
             var students = _studentService.GetStudents(q);
             return Ok(students);
-            }
+        }
+
     }
 }
