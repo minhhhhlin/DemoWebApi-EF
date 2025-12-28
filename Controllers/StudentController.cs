@@ -1,6 +1,7 @@
 ﻿using DemoWebAPI_2.DTO;
 using DemoWebAPI_2.Service;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,10 +13,13 @@ namespace DemoWebAPI_2.Controllers
     public class StudentController : Controller
     {
         private readonly IStudentService _studentService;
-        public StudentController(IStudentService studentService)
+        private readonly IFileService _fileService;
+        public StudentController(IStudentService studentService, IFileService fileService)
         {
             _studentService = studentService;
+            _fileService = fileService;
         }
+
         [Authorize]
         [HttpGet("id")]
         public async Task<IActionResult> GetStudentById(int id)
@@ -41,6 +45,16 @@ namespace DemoWebAPI_2.Controllers
         {
             var students = _studentService.GetStudents(q);
             return Ok(students);
+        }
+
+        [Authorize]
+        [HttpPost("{id}/avatar")]
+        public async Task<IActionResult> UploadAvatar(
+    int id,
+    [FromForm] UploadAvatarDto dto)
+        {
+            await _studentService.UploadAvatarAsync(id, dto.File);
+            return Ok("Upload avatar thành công");
         }
 
     }

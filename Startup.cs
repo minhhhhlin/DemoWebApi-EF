@@ -61,7 +61,7 @@ namespace DemoWebAPI_2
             services.AddScoped<IJwtService, JwtService>();  
             services.AddScoped<IClassService, ClassService>();
             services.AddScoped<IStudentService, StudentService>();
-            
+            services.AddScoped<IFileService, FileService>();
 
             services.AddSwaggerGen(c =>
             {
@@ -109,9 +109,14 @@ namespace DemoWebAPI_2
 
             app.UseRouting();
 
+            app.UseStaticFiles();
+
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            
+
 
             app.UseEndpoints(endpoints =>
             {

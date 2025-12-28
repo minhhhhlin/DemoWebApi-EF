@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DemoWebAPI_2.Controllers
 {
@@ -25,14 +26,14 @@ namespace DemoWebAPI_2.Controllers
         }
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login(LoginDto dto)
+        public async Task<IActionResult> Login(LoginDto dto)
         {
-            var token = _jwtService.Login(dto.Username, dto.Password);
+            var token = await _jwtService.Login(dto.Username, dto.Password);
             return Ok(new { token });
         }
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register(RegisterDto dto)
+        public async Task<IActionResult> Register(RegisterDto dto)
         {
             _jwtService.Register(dto.Username, dto.Password);
             return Ok("User registered successfully");

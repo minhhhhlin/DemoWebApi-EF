@@ -1,13 +1,14 @@
 ﻿using DemoWebAPI_2.Entity;
 using DemoWebAPI_2.DTO;
 using System;
+using System.Threading.Tasks;
 
 namespace DemoWebAPI_2.Service
 {
     public interface IJwtService
     {
-        string GenerateToken(User user);
-        String Login(string username, string password);
-        void Register(string username, string password);
+        Task<string> GenerateToken(User user);
+        Task<String> Login(string username, string password);
+        Task Register(string username, string password);
     }
 }

@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DemoWebAPI_2.Service
 {
@@ -23,31 +24,32 @@ namespace DemoWebAPI_2.Service
             _context = context;
             _configuration = configuration;
         }
-        public string GenerateToken(User user)
+        public async Task<string> GenerateToken(User user)
         {   
-            //Thông tin user
+            //Lưu thông tin user vào claims
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.Name, user.Username), //lưu tên user
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) //lưu id user
             };
             //key bảo mật
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             //ký token
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);//mã hóa thuật toán HmacSha256
             //tạo token
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: System.DateTime.Now.AddMinutes(int.Parse(_configuration["Jwt:ExpireMinutes"])),
-                signingCredentials: creds
+                issuer: _configuration["Jwt:Issuer"], //ai cấp token
+                audience: _configuration["Jwt:Audience"], //ai sử dụng token
+                claims: claims, //nhét thông tin user vào token
+                expires: System.DateTime.Now.AddMinutes(int.Parse(_configuration["Jwt:ExpireMinutes"])), //thời gian hết hạn
+                signingCredentials: creds //ký token
             );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            return await Task.FromResult(tokenString);
         }
 
 
-        public String Login(string username, string password)
+        public async Task<String> Login(string username, string password)
         {
             var hash = PasswordHasher.Hash(password);
             var user = _context.Users.FirstOrDefault(u => u.Username == username && u.PasswordHash == hash);
@@ -55,11 +57,11 @@ namespace DemoWebAPI_2.Service
             {
                 throw new Exception("Invalid username or password");
             }
-            var Token = GenerateToken(user);
+            var Token = await GenerateToken(user);
             return Token;
         }
 
-        public void Register(string username, string password)
+        public async Task Register(string username, string password)
         {
             if(_context.Users.Any(x => x.Username == username))
                 throw new Exception("User exists");
@@ -69,7 +71,7 @@ namespace DemoWebAPI_2.Service
                 PasswordHash = PasswordHasher.Hash(password)
             };
             _context.Users.Add(user);
-            _context.SaveChanges();
+            _context.SaveChangesAsync();
         }
     }
 }

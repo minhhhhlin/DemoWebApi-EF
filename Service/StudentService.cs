@@ -1,6 +1,8 @@
 ﻿using DemoWebAPI_2.DTO;
 using DemoWebAPI_2.Entity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,9 +12,11 @@ namespace DemoWebAPI_2.Service
     public class StudentService : IStudentService
     {
         private readonly AppDbContext _context;
-        public StudentService(AppDbContext context)
+        private readonly IFileService _fileService;
+        public StudentService(AppDbContext context, IFileService fileService)
         {
             _context = context;
+            _fileService = fileService;
         }
         // EF core LinQ to query data
         public async Task<List<StudentDto>> GetAllStudents()
@@ -93,5 +97,20 @@ namespace DemoWebAPI_2.Service
                 Data = students
             };
         }
+        public async Task UploadAvatarAsync(int studentId, IFormFile file)
+        {
+            // 1️⃣ Kiểm tra student tồn tại
+            var student = await _context.Students.FindAsync(studentId);
+            if (student == null)
+                throw new Exception("Student không tồn tại");
+
+            // 2️⃣ Upload file
+            var avatarUrl = await _fileService.UploadAvatarAsync(file);
+
+            // 3️⃣ Update DB
+            student.AvatarUrl = avatarUrl;
+            await _context.SaveChangesAsync();
+        }
     }
 }
+
