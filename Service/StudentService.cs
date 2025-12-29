@@ -46,7 +46,7 @@ namespace DemoWebAPI_2.Service
             return student;
         }
 
-        public object GetStudents(StudentQueryDto q)
+        public async Task<object> GetStudents(StudentQueryDto q)
         {
             //Tạo query, chưa chạy DB
             IQueryable<Student> query = _context.Students;
@@ -77,17 +77,17 @@ namespace DemoWebAPI_2.Service
                         query.OrderBy(s => s.Id);
                 }
             }
-            int totalRecords = query.Count();
+            int totalRecords = await query.CountAsync();
             //Pagination
-            var students = query
+            var students = await query
                 .Skip((q.Page - 1) * q.PageSize)
                 .Take(q.PageSize)
                 .Select(s => new StudentDto
                 {
                     Id = s.Id,
                     FullName = s.FullName,
-                    ClassName = s.Class.Name
-                }).ToList(); //Chạy query       
+                    ClassName = s.Class.Name 
+                }).ToListAsync().ConfigureAwait(false); //Chạy query       
             return new
             {
                 totalRecords = totalRecords,
@@ -97,18 +97,49 @@ namespace DemoWebAPI_2.Service
                 Data = students
             };
         }
+        //IFormFile
         public async Task UploadAvatarAsync(int studentId, IFormFile file)
         {
-            // 1️⃣ Kiểm tra student tồn tại
+            //Kiểm tra student tồn tại
             var student = await _context.Students.FindAsync(studentId);
             if (student == null)
                 throw new Exception("Student không tồn tại");
 
-            // 2️⃣ Upload file
+            //Upload file
             var avatarUrl = await _fileService.UploadAvatarAsync(file);
 
-            // 3️⃣ Update DB
+            //Update DB
             student.AvatarUrl = avatarUrl;
+            await _context.SaveChangesAsync();
+        }
+        
+        public async Task AddStudent(CreateStudentDto dto)
+        {
+            var student = new Student
+            {
+                FullName = dto.FullName,
+                ClassId = dto.ClassId
+            };
+            await _context.Students.AddAsync(student);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateStudent(int id, UpdateStudentDto dto)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+                throw new Exception("Student không tồn tại");
+            student.FullName = dto.FullName;
+            student.ClassId = dto.ClassId;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteStudent(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+                throw new Exception("Student không tồn tại");
+            _context.Students.Remove(student);
             await _context.SaveChangesAsync();
         }
     }

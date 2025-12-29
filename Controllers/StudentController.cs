@@ -32,12 +32,7 @@ namespace DemoWebAPI_2.Controllers
             return Ok(student);
 
         }
-        //[HttpGet]
-        //public async Task<IActionResult> GetAllStudents()
-        //{
-        //    var students = await _studentService.GetAllStudents();
-        //    return Ok(students);
-        //}
+
 
         [Authorize]
         [HttpGet]
@@ -46,6 +41,8 @@ namespace DemoWebAPI_2.Controllers
             var students = _studentService.GetStudents(q);
             return Ok(students);
         }
+
+
 
         [Authorize]
         [HttpPost("{id}/avatar")]
@@ -57,5 +54,29 @@ namespace DemoWebAPI_2.Controllers
             return Ok("Upload avatar thành công");
         }
 
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> AddStudent(CreateStudentDto dto)
+        {
+            await _studentService.AddStudent(dto);
+            return Ok("Tạo sinh viên mới thành công");
+        }
+
+        [Authorize]
+        [HttpPut("id")]
+        public async Task<IActionResult> UpdateStudent(int id, UpdateStudentDto dto)
+        {
+            await _studentService.UpdateStudent(id, dto);
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpDelete("id")]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            await _studentService.DeleteStudent(id);
+            return NoContent();
+        }
     }
 }

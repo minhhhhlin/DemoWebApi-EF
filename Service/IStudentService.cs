@@ -10,7 +10,10 @@ namespace DemoWebAPI_2.Service
         //Async/await
         Task<StudentDto> GetStudentById(int id);
         Task<List<StudentDto>> GetAllStudents();
-        object GetStudents(StudentQueryDto q);
+        Task<object> GetStudents(StudentQueryDto q);
         Task UploadAvatarAsync(int studentId, IFormFile file);
+        Task AddStudent(CreateStudentDto student);
+        Task UpdateStudent(int id, UpdateStudentDto student);
+        Task DeleteStudent(int id);
     }
 }
